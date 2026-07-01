@@ -1,0 +1,39 @@
+SYNTHETIC DEMO DATA — NOT A REAL PATIENT
+
+PRESCRIPTION
+Brightwood Dermatology Associates
+2200 Cedar Hill Road, Suite 310, Naperville, IL 60540
+Phone: (555) 660-2120   Fax: (555) 660-2121
+
+Prescriber: Andrew Lim, MD — Dermatology
+NPI: 1982347561
+
+Date: 2026-06-24
+
+PATIENT
+Name: Maria L. Santos
+DOB: 11/05/1990   Sex: Female
+Phone: (555) 274-9038
+Address: 745 Glenview Avenue, Apt 12B, Naperville, IL 60540
+
+INSURANCE
+Payer: Aetna — Open Access HMO
+Member ID: W213456789   Group: 285410
+Rx BIN: 610502   Rx PCN: ADV   Rx Group: RX8294
+
+DIAGNOSIS
+Moderate-to-severe atopic dermatitis (ICD-10 L20.9), inadequately
+controlled on topical therapy.
+
+Rx: Dupixent (dupilumab) 300 mg / 2 mL prefilled pen
+
+Sig: Inject 600 mg subcutaneously (two 300 mg injections) as a single
+loading dose on day 1, then inject 300 mg subcutaneously every 2 weeks.
+
+Dispense: 1 carton (2 prefilled pens) — 28-day supply
+Refills: 2
+
+Prior therapy on file: medium- and high-potency topical corticosteroids and
+topical calcineurin inhibitor (tacrolimus) with inadequate control.
+
+Prescriber signature: Andrew Lim, MD

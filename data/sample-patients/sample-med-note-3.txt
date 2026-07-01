@@ -1,0 +1,53 @@
+SYNTHETIC DEMO DATA — NOT A REAL PATIENT
+
+OFFICE VISIT NOTE + PRESCRIPTION
+Northgate Behavioral Health & Psychiatry
+58 Lakefront Blvd, Suite 220, Evanston, IL 60201
+Phone: (555) 905-1180   Fax: (555) 905-1181
+
+Provider: Allison Reyes, MD — Psychiatry
+NPI: 1326754980   DEA: BR1234563
+
+Date of service: 2026-06-25
+
+PATIENT
+Name: Daniel T. Okafor
+DOB: 09/30/1999   Sex: Male
+Phone: (555) 631-7742
+Address: 318 Sherman Street, Unit 4, Evanston, IL 60202
+
+INSURANCE
+Payer: Blue Cross Blue Shield — Blue Advantage PPO
+Member ID: XYH901447632   Group: 100214
+Rx BIN: 003858   Rx PCN: A4
+
+ASSESSMENT
+26-year-old male with attention-deficit/hyperactivity disorder, combined
+type (ICD-10 F90.2), confirmed by clinical interview and validated rating
+scales (adult ADHD self-report scale). Symptoms include persistent
+inattention, distractibility, and difficulty completing tasks, impairing
+work performance. No history of substance misuse; cardiac review of systems
+unremarkable, baseline BP and HR within normal limits.
+
+PRIOR THERAPIES TRIED
+- Strattera (atomoxetine) 80 mg daily x 10 weeks — inadequate symptom
+  control.
+- Concerta (methylphenidate ER) 54 mg daily x 8 weeks — partial response
+  with appetite suppression and afternoon rebound; discontinued.
+
+PLAN
+Transition to an extended-release amphetamine product given inadequate
+response to atomoxetine and methylphenidate. Reviewed risks/benefits of
+stimulant therapy, controlled-substance agreement signed. Follow up in
+4 weeks.
+
+PRESCRIPTION
+Rx: Adderall XR (dextroamphetamine-amphetamine extended-release) 20 mg
+capsule
+Sig: Take 1 capsule by mouth every morning.
+Dispense: 30 capsules
+Days supply: 30
+Refills: 0 (Schedule II — no refills permitted; new prescription required
+each fill)
+
+Prescriber signature: Allison Reyes, MD   DEA: BR1234563

@@ -1,0 +1,72 @@
+SYNTHETIC DEMO DATA — NOT A REAL PATIENT
+
+COMPREHENSIVE PATIENT PROFILE & WEIGHT MANAGEMENT VISIT NOTE
+Lakeside Endocrinology & Medical Weight Management
+Date of service: 2026-06-22
+Provider: Susan Whitfield, MD — Endocrinology / Obesity Medicine
+Provider NPI: 1457823690
+Clinic phone: (555) 412-7700   Clinic fax: (555) 412-7701
+
+PATIENT
+Name: Robert J. Hayes
+DOB: 07/22/1968   Sex: Male
+Phone: (555) 318-4471
+Address: 1190 Maple Crest Drive, Aurora, IL 60504
+
+INSURANCE
+Payer: UnitedHealthcare — Choice Plus PPO
+Member ID: 948267715   Group: 0708144
+Rx BIN: 610279   Rx PCN: 9999   Rx Group: UHCRX01
+
+VITALS / ANTHROPOMETRICS
+Height: 70 in (5'10")   Weight: 262 lb   BMI: 37.6 kg/m^2
+Blood pressure: 138/86 mmHg
+Most recent HbA1c: 7.8% (2026-06-10)   Fasting glucose: 156 mg/dL
+
+ACTIVE PROBLEM LIST
+1. Type 2 diabetes mellitus, without complications (ICD-10 E11.9)
+2. Morbid (severe) obesity due to excess calories (ICD-10 E66.01)
+3. Body mass index 37.0-37.9, adult (ICD-10 Z68.37)
+4. Essential hypertension (ICD-10 I10)
+
+WEIGHT MANAGEMENT PROGRAM ENROLLMENT
+Patient is actively enrolled in the Lakeside Medically Supervised Weight
+Management Program (enrolled 2025-11-03). He attends monthly visits and is
+working with a registered dietitian (Karen Mosley, RD) on a reduced-calorie
+meal plan (~1,500 kcal/day) and a structured activity plan of 150 min/week
+of moderate exercise. Documented program participation > 6 months.
+
+PRIOR WEIGHT-LOSS THERAPIES TRIED (STEP THERAPY)
+- Intensive lifestyle/diet + exercise program x 6 months — < 4% total body
+  weight loss; plateaued.
+- Metformin 1,000 mg BID — ongoing for glycemic control; no meaningful
+  weight reduction.
+- Saxenda (liraglutide) 3.0 mg subcutaneous daily x 4 months — inadequate
+  weight response (approx. 3% loss) with nausea limiting adherence;
+  discontinued.
+- Ozempic (semaglutide) 1.0 mg subcutaneous weekly x 5 months — modest
+  glycemic benefit but insufficient weight reduction at maximally tolerated
+  dose; patient remains in obese range with persistent comorbidities.
+
+ASSESSMENT
+57-year-old male with type 2 diabetes and severe obesity (BMI 37.6) and
+weight-related comorbidities (T2DM, hypertension), enrolled in a supervised
+weight management program with documented dietitian involvement. Despite
+lifestyle modification and prior trials of liraglutide and semaglutide
+(Ozempic) at the doses noted above, he has not achieved a clinically
+meaningful, sustained weight reduction.
+
+PLAN / REQUESTED MEDICATION
+Requesting prior authorization for Wegovy (semaglutide) 0.25 mg/0.5 mL
+subcutaneous injection pen. Sig: inject 0.25 mg subcutaneously once weekly
+x 4 weeks (initiation), then titrate per label toward 2.4 mg weekly
+maintenance as tolerated.
+Dispense: 1 carton (4 single-dose pens) = 28-day supply.
+Refills: 5 (with planned dose titration).
+
+Medical necessity: BMI > 30 (37.6) with multiple weight-related
+comorbidities including type 2 diabetes; documented participation in a
+comprehensive weight management / lifestyle program with dietitian
+oversight; and inadequate response to prior anti-obesity / GLP-1 therapy
+(liraglutide, semaglutide). Wegovy is indicated for chronic weight
+management in this setting.
