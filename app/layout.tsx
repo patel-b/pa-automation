@@ -1,3 +1,8 @@
+// =============================================================================
+// PAGE SHELL — the shared frame wrapped around every page: the top header/logo
+// ("pa automation center"), the browser-tab title, and global styles.
+// =============================================================================
+
 import type { Metadata } from "next";
 import "./globals.css";
 

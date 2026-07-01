@@ -97,20 +97,43 @@ auto-fills the ICD-10 code, and suggestions are biased by the chosen drug).
 Address autocomplete is optional — set `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` to
 enable Google Places suggestions; otherwise it's a normal field.
 
-### Key files
+### Where's what — a guide to the files
 
-| File | Purpose |
+New to the project? Read the files in roughly this order. (In a Next.js app,
+some filenames are fixed by the framework — `page.tsx` is always the page,
+`layout.tsx` the shell, `route.ts` a backend endpoint — so the folder they live
+in tells you their job.)
+
+**The website you see (front-end)**
+
+| File | What it does |
 | --- | --- |
-| `lib/schema.ts` | The normalized `ExtractedData` shape shared everywhere. |
-| `lib/parse.ts` | Turns uploaded PDFs/Word docs into text; passes card images to vision. |
-| `lib/claude.ts` | Calls Claude with a JSON schema to extract structured fields. |
-| `lib/forms/` | PA form templates + the matcher that picks one. |
-| `app/api/extract/route.ts` | Orchestrates parse → extract → match → fill. |
-| `app/api/draft-pdf/route.ts` | Overlays form values onto a real payer PA-form PDF. |
-| `lib/pdf/templates.ts` | Per-payer PDF template + field coordinate maps. |
-| `lib/demo/samples.ts` | Pre-computed extraction results for the sample patients (Demo Mode — no API call). |
-| `app/DraftPdfView.tsx` | Renders the filled PA-form PDF to `<canvas>` with pdf.js (works in any browser). |
-| `app/page.tsx` | The single-page UI: drop zones + auto-filled PA form + submit. |
+| `app/page.tsx` | 🏠 **The whole homepage** — drop zones, sample-patient buttons, the auto-filled PA form, and the draft editor. Start here. |
+| `app/layout.tsx` | The page shell: header/logo, tab title, global styles. |
+| `app/DraftEditor.tsx` | Shows the filled PDF and lets you add/drag text & X marks on it (manual edits). |
+
+**The backend (runs on the server)**
+
+| File | What it does |
+| --- | --- |
+| `app/api/extract/route.ts` | Endpoint that reads uploaded docs with Claude → structured fields. |
+| `app/api/draft-pdf/route.ts` | Endpoint that fills the payer's PDF form and bakes in manual edits. |
+| `lib/claude.ts` | The actual Claude (AI) call that extracts the data. |
+| `lib/parse.ts` | Turns uploaded PDFs / Word docs into text for Claude to read. |
+
+**The data & rules**
+
+| File | What it does |
+| --- | --- |
+| `lib/schema.ts` | The shared shape of the extracted data (patient, insurance, clinical…). |
+| `lib/forms/` | The on-screen PA form fields + the logic that picks the right form. |
+| `lib/pdf/templates.ts` | For each payer, which real PDF to use and where each value goes on it. |
+| `lib/demo/samples.ts` | Pre-computed results for the 3 sample patients (Demo Mode — no API call). |
+| `pa-forms/` | The real payer PA-form PDFs that get filled in. |
+| `data/sample-patients/` | Synthetic insurance cards + clinical notes for the demo. |
+
+**How it's launched:** `package.json` holds the commands — `npm run dev`
+(local) and `npm run build` / `npm start` (production).
 
 ### Realistic draft PDFs
 

@@ -1,3 +1,10 @@
+// =============================================================================
+// BACKEND ENDPOINT — POST /api/extract
+// Reads the uploaded insurance card + clinical notes with Claude and returns
+// the structured patient / insurance / clinical fields used to fill the form.
+// For the bundled sample patients it returns pre-computed data (no API call).
+// =============================================================================
+
 import { NextResponse } from "next/server";
 import { parseUploads } from "@/lib/parse";
 import { extractData, MissingApiKeyError } from "@/lib/claude";

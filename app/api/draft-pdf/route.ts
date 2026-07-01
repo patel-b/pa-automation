@@ -1,3 +1,9 @@
+// =============================================================================
+// BACKEND ENDPOINT — POST /api/draft-pdf
+// Takes the filled form values, overlays them onto the matching payer's real
+// PA-form PDF, bakes in any manual annotations, and returns the finished PDF.
+// =============================================================================
+
 import { readFile } from "fs/promises";
 import path from "path";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";

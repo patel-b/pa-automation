@@ -1,5 +1,13 @@
 "use client";
 
+// =============================================================================
+// MAIN WEB PAGE — this is the entire homepage users see at the site root ("/").
+//
+// It contains: the document drop zones, the "sample patient" buttons, the
+// auto-filled prior-authorization form, and the draft preview / PDF editor.
+// (Start the site locally with `npm run dev`, then open http://localhost:3000.)
+// =============================================================================
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FORM_TEMPLATES, fillForm } from "@/lib/forms";
 import { emptyExtractedData, type Confidence } from "@/lib/schema";

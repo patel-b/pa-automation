@@ -1,3 +1,9 @@
+// =============================================================================
+// CLAUDE (ANTHROPIC API) INTEGRATION — the AI extraction step.
+// Sends the document text + insurance-card image to Claude and gets back a
+// structured, typed object of patient / insurance / clinical fields.
+// =============================================================================
+
 import Anthropic from "@anthropic-ai/sdk";
 import type { ExtractedData } from "@/lib/schema";
 import { emptyExtractedData } from "@/lib/schema";
