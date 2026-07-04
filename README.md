@@ -71,6 +71,7 @@ Live extraction calls the Anthropic API (a few cents each). For a public
 deployment that should never run up a bill:
 
 - The sample-patient buttons make **no API calls**, so anonymous traffic is free.
+- Leave `DEMO_ONLY=0` (or unset) to allow live uploads with your Anthropic key.
 - Set `DEMO_ONLY=1` to **disable live uploads entirely** — only the bundled
   samples run. Pair with a spend cap in the Anthropic console for a hard ceiling.
 
