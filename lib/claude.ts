@@ -16,10 +16,10 @@ import type { ParsedImage } from "@/lib/parse";
  * The card image is passed to Claude's vision-capable model directly. The model
  * returns JSON, then we normalize it into the exact app shape locally.
  *
- * Model defaults to Claude Opus 4.8 (most capable); override with ANTHROPIC_MODEL.
+ * Model defaults to Claude Sonnet 5 (speed/cost balanced); override with ANTHROPIC_MODEL.
  */
 
-const MODEL = process.env.ANTHROPIC_MODEL || "claude-opus-4-8";
+const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-5";
 
 /** Thrown when ANTHROPIC_API_KEY isn't set — the API route turns this into a friendly message. */
 export class MissingApiKeyError extends Error {
