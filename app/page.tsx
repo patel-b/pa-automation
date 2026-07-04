@@ -335,6 +335,23 @@ export default function Home() {
     setShowDraft(false);
   }
 
+  function clearPriorAuthForm() {
+    if (draftPdfUrl) URL.revokeObjectURL(draftPdfUrl);
+    const nextForm = blankForm();
+    setFilled(nextForm);
+    setValues(valuesFromForm(nextForm));
+    setMatch(null);
+    setHasExtracted(false);
+    setIsDemo(false);
+    setFormVersion((v) => v + 1);
+    setHeader({ name: "New patient", dob: "" });
+    setSubmitAttempted(false);
+    setShowDraft(false);
+    setDraftPdfUrl(null);
+    setDraftLoading(false);
+    setError(null);
+  }
+
   if (submitted) {
     const name =
       [
@@ -607,16 +624,25 @@ export default function Home() {
 
       {/* Step 2 — the PA form */}
       <section className="rounded-xl border border-gray-200 bg-white p-5">
-        <div className="mb-4 flex items-center gap-2">
-          <StepDot n={2} />
-          <h2 className="text-sm font-semibold text-gray-900">
-            Prior authorization form
-          </h2>
-          {!hasExtracted && (
-            <span className="text-xs text-gray-400">
-              (drop documents above, or fill in by hand)
-            </span>
-          )}
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <StepDot n={2} />
+            <h2 className="text-sm font-semibold text-gray-900">
+              Prior authorization form
+            </h2>
+            {!hasExtracted && (
+              <span className="text-xs text-gray-400">
+                (drop documents above, or fill in by hand)
+              </span>
+            )}
+          </div>
+          <button
+            onClick={clearPriorAuthForm}
+            disabled={loading || draftLoading}
+            className="rounded-full border border-gray-300 bg-white px-3.5 py-1.5 text-xs font-medium text-gray-700 transition hover:border-[#e0006d] hover:text-[#e0006d] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Clear form
+          </button>
         </div>
 
         <div className="space-y-7">
