@@ -9,7 +9,6 @@
  * These run only on the server (the API route), never in the browser.
  */
 
-import { PDFParse } from "pdf-parse";
 import mammoth from "mammoth";
 
 export interface ParsedImage {
@@ -47,6 +46,16 @@ function isPdf(name: string, type: string): boolean {
 }
 
 async function pdfToText(buffer: Buffer): Promise<string> {
+  // pdfjs-dist (used internally by pdf-parse) references DOMMatrix/ImageData/Path2D at
+  // module scope even for plain text extraction, expecting @napi-rs/canvas to provide
+  // them. That native package isn't available on Vercel and isn't needed here — we never
+  // render PDF pages, only extract text — so stub just enough for the module to load.
+  class CanvasStub {}
+  globalThis.DOMMatrix ??= CanvasStub as unknown as typeof DOMMatrix;
+  globalThis.ImageData ??= CanvasStub as unknown as typeof ImageData;
+  globalThis.Path2D ??= CanvasStub as unknown as typeof Path2D;
+
+  const { PDFParse } = await import("pdf-parse");
   const parser = new PDFParse({ data: new Uint8Array(buffer) });
   try {
     const result = await parser.getText();
