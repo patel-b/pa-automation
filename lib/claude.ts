@@ -5,7 +5,7 @@
 // =============================================================================
 
 import Anthropic from "@anthropic-ai/sdk";
-import type { ExtractedData } from "@/lib/schema";
+import type { Confidence, ExtractedData, Field, RequestType } from "@/lib/schema";
 import { emptyExtractedData } from "@/lib/schema";
 import type { ParsedImage } from "@/lib/parse";
 
@@ -13,9 +13,8 @@ import type { ParsedImage } from "@/lib/parse";
  * Extraction step: hand the parsed documents + insurance-card image(s) to Claude
  * and get back a normalized ExtractedData object.
  *
- * Uses structured outputs (output_config.format with a json_schema) so the model
- * is constrained to return exactly our shape — no brittle JSON-from-prose parsing.
- * The card image is passed to Claude's vision-capable model directly.
+ * The card image is passed to Claude's vision-capable model directly. The model
+ * returns JSON, then we normalize it into the exact app shape locally.
  *
  * Model defaults to Claude Opus 4.8 (most capable); override with ANTHROPIC_MODEL.
  */
@@ -30,116 +29,206 @@ export class MissingApiKeyError extends Error {
   }
 }
 
-// --- JSON schema for structured output (mirrors ExtractedData) ---
+const CONFIDENCES: Confidence[] = ["high", "medium", "low"];
+const REQUEST_TYPES: RequestType[] = [
+  "medication",
+  "imaging",
+  "procedure",
+  "unknown",
+];
 
-const field = () => ({
-  type: "object",
-  additionalProperties: false,
-  properties: {
-    value: {
-      type: "string",
-      description: "The literal extracted value, or an empty string if it is not present.",
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function normalizeConfidence(value: unknown): Confidence {
+  return CONFIDENCES.includes(value as Confidence)
+    ? (value as Confidence)
+    : "low";
+}
+
+function normalizeSource(value: unknown, hasValue: boolean): string {
+  if (typeof value === "string" && value.trim()) return value.trim();
+  return hasValue ? "model output" : "not found";
+}
+
+function normalizeValue(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  const normalized = String(value).trim();
+  return normalized ? normalized : null;
+}
+
+function normalizeField(raw: unknown): Field {
+  const record = isRecord(raw) ? raw : {};
+  const rawValue = "value" in record ? record.value : raw;
+  const value = normalizeValue(rawValue);
+  return {
+    value,
+    confidence: normalizeConfidence(record.confidence),
+    source: normalizeSource(record.source, Boolean(value)),
+  };
+}
+
+function normalizeRequestType(raw: unknown): Field<RequestType> {
+  const record = isRecord(raw) ? raw : {};
+  const rawValue = "value" in record ? record.value : raw;
+  const value = normalizeValue(rawValue);
+  const requestType = REQUEST_TYPES.includes(value as RequestType)
+    ? (value as RequestType)
+    : "unknown";
+  return {
+    value: requestType,
+    confidence: normalizeConfidence(record.confidence),
+    source: normalizeSource(record.source, requestType !== "unknown"),
+  };
+}
+
+function normalizeExtractedData(raw: unknown): ExtractedData {
+  if (!isRecord(raw)) return emptyExtractedData();
+
+  const patient = isRecord(raw.patient) ? raw.patient : {};
+  const insurance = isRecord(raw.insurance) ? raw.insurance : {};
+  const clinical = isRecord(raw.clinical) ? raw.clinical : {};
+  const provider = isRecord(raw.provider) ? raw.provider : {};
+
+  return {
+    patient: {
+      firstName: normalizeField(patient.firstName),
+      lastName: normalizeField(patient.lastName),
+      dateOfBirth: normalizeField(patient.dateOfBirth),
+      sex: normalizeField(patient.sex),
+      phone: normalizeField(patient.phone),
+      address: normalizeField(patient.address),
     },
-    confidence: { type: "string", enum: ["high", "medium", "low"] },
-    source: {
-      type: "string",
-      description: "Where the value came from, e.g. 'insurance card', 'clinical note', or 'not found'.",
+    insurance: {
+      payerName: normalizeField(insurance.payerName),
+      planName: normalizeField(insurance.planName),
+      memberId: normalizeField(insurance.memberId),
+      groupNumber: normalizeField(insurance.groupNumber),
+      rxBin: normalizeField(insurance.rxBin),
+      rxPcn: normalizeField(insurance.rxPcn),
     },
-  },
-  required: ["value", "confidence", "source"],
-});
-
-const requestTypeField = {
-  type: "object",
-  additionalProperties: false,
-  properties: {
-    value: {
-      type: "string",
-      enum: ["medication", "imaging", "procedure", "unknown"],
+    clinical: {
+      primaryDiagnosis: normalizeField(clinical.primaryDiagnosis),
+      icd10Code: normalizeField(clinical.icd10Code),
+      requestType: normalizeRequestType(clinical.requestType),
+      requestedService: normalizeField(clinical.requestedService),
+      requestedCptCode: normalizeField(clinical.requestedCptCode),
+      directions: normalizeField(clinical.directions),
+      strength: normalizeField(clinical.strength),
+      frequency: normalizeField(clinical.frequency),
+      quantity: normalizeField(clinical.quantity),
+      daysSupply: normalizeField(clinical.daysSupply),
+      lengthOfTherapy: normalizeField(clinical.lengthOfTherapy),
+      clinicalJustification: normalizeField(clinical.clinicalJustification),
+      relevantHistory: normalizeField(clinical.relevantHistory),
     },
-    confidence: { type: "string", enum: ["high", "medium", "low"] },
-    source: { type: "string" },
-  },
-  required: ["value", "confidence", "source"],
-};
+    provider: {
+      name: normalizeField(provider.name),
+      npi: normalizeField(provider.npi),
+      specialty: normalizeField(provider.specialty),
+      clinicName: normalizeField(provider.clinicName),
+      phone: normalizeField(provider.phone),
+      fax: normalizeField(provider.fax),
+    },
+  };
+}
 
-const objectOf = (props: Record<string, unknown>) => ({
-  type: "object",
-  additionalProperties: false,
-  properties: props,
-  required: Object.keys(props),
-});
+function parseJsonObject(text: string): unknown | null {
+  const trimmed = text.trim();
+  const candidates = [trimmed];
+  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenced?.[1]) candidates.push(fenced[1].trim());
 
-const extractionSchema = objectOf({
-  patient: objectOf({
-    firstName: field(),
-    lastName: field(),
-    dateOfBirth: field(),
-    sex: field(),
-    phone: field(),
-    address: field(),
-  }),
-  insurance: objectOf({
-    payerName: field(),
-    planName: field(),
-    memberId: field(),
-    groupNumber: field(),
-    rxBin: field(),
-    rxPcn: field(),
-  }),
-  clinical: objectOf({
-    primaryDiagnosis: field(),
-    icd10Code: field(),
-    requestType: requestTypeField,
-    requestedService: field(),
-    requestedCptCode: field(),
-    directions: field(),
-    strength: field(),
-    frequency: field(),
-    quantity: field(),
-    daysSupply: field(),
-    lengthOfTherapy: field(),
-    clinicalJustification: field(),
-    relevantHistory: field(),
-  }),
-  provider: objectOf({
-    name: field(),
-    npi: field(),
-    specialty: field(),
-    clinicName: field(),
-    phone: field(),
-    fax: field(),
-  }),
-});
+  const objectText = extractFirstJsonObject(trimmed);
+  if (objectText) candidates.push(objectText);
 
-function normalizeEmptyValues<T>(data: T): T {
-  if (Array.isArray(data)) {
-    return data.map(normalizeEmptyValues) as T;
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(candidate);
+    } catch {
+      // Try the next candidate.
+    }
   }
 
-  if (data && typeof data === "object") {
-    const record = data as Record<string, unknown>;
-    const isExtractedField =
-      "value" in record && "confidence" in record && "source" in record;
+  return null;
+}
 
-    if (
-      isExtractedField &&
-      typeof record.value === "string" &&
-      record.value.trim() === ""
-    ) {
-      return { ...record, value: null } as T;
+function extractFirstJsonObject(text: string): string | null {
+  const start = text.indexOf("{");
+  if (start < 0) return null;
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let i = start; i < text.length; i++) {
+    const char = text[i];
+
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (char === "\\") {
+        escaped = true;
+      } else if (char === "\"") {
+        inString = false;
+      }
+      continue;
     }
 
-    return Object.fromEntries(
-      Object.entries(record).map(([key, value]) => [
-        key,
-        normalizeEmptyValues(value),
-      ]),
-    ) as T;
+    if (char === "\"") inString = true;
+    else if (char === "{") depth += 1;
+    else if (char === "}") {
+      depth -= 1;
+      if (depth === 0) return text.slice(start, i + 1);
+    }
   }
 
-  return data;
+  return null;
 }
+
+const OUTPUT_FORMAT = `Return only valid JSON with this shape:
+{
+  "patient": {
+    "firstName": {"value": "", "confidence": "low", "source": "not found"},
+    "lastName": {"value": "", "confidence": "low", "source": "not found"},
+    "dateOfBirth": {"value": "", "confidence": "low", "source": "not found"},
+    "sex": {"value": "", "confidence": "low", "source": "not found"},
+    "phone": {"value": "", "confidence": "low", "source": "not found"},
+    "address": {"value": "", "confidence": "low", "source": "not found"}
+  },
+  "insurance": {
+    "payerName": {"value": "", "confidence": "low", "source": "not found"},
+    "planName": {"value": "", "confidence": "low", "source": "not found"},
+    "memberId": {"value": "", "confidence": "low", "source": "not found"},
+    "groupNumber": {"value": "", "confidence": "low", "source": "not found"},
+    "rxBin": {"value": "", "confidence": "low", "source": "not found"},
+    "rxPcn": {"value": "", "confidence": "low", "source": "not found"}
+  },
+  "clinical": {
+    "primaryDiagnosis": {"value": "", "confidence": "low", "source": "not found"},
+    "icd10Code": {"value": "", "confidence": "low", "source": "not found"},
+    "requestType": {"value": "unknown", "confidence": "low", "source": "not found"},
+    "requestedService": {"value": "", "confidence": "low", "source": "not found"},
+    "requestedCptCode": {"value": "", "confidence": "low", "source": "not found"},
+    "directions": {"value": "", "confidence": "low", "source": "not found"},
+    "strength": {"value": "", "confidence": "low", "source": "not found"},
+    "frequency": {"value": "", "confidence": "low", "source": "not found"},
+    "quantity": {"value": "", "confidence": "low", "source": "not found"},
+    "daysSupply": {"value": "", "confidence": "low", "source": "not found"},
+    "lengthOfTherapy": {"value": "", "confidence": "low", "source": "not found"},
+    "clinicalJustification": {"value": "", "confidence": "low", "source": "not found"},
+    "relevantHistory": {"value": "", "confidence": "low", "source": "not found"}
+  },
+  "provider": {
+    "name": {"value": "", "confidence": "low", "source": "not found"},
+    "npi": {"value": "", "confidence": "low", "source": "not found"},
+    "specialty": {"value": "", "confidence": "low", "source": "not found"},
+    "clinicName": {"value": "", "confidence": "low", "source": "not found"},
+    "phone": {"value": "", "confidence": "low", "source": "not found"},
+    "fax": {"value": "", "confidence": "low", "source": "not found"}
+  }
+}`;
 
 const SYSTEM_PROMPT = `You are a clinical intake assistant that extracts structured data from a patient's medical notes and their insurance card, to pre-fill a prior authorization (PA) request form.
 
@@ -196,20 +285,20 @@ export async function extractData(
 
   content.push({
     type: "text",
-    text: `${images.length > 0 ? "The image(s) above are the patient's insurance card.\n\n" : ""}${docSection}\n\nExtract the structured prior-authorization fields.`,
+    text: `${images.length > 0 ? "The image(s) above are the patient's insurance card.\n\n" : ""}${docSection}\n\nExtract the structured prior-authorization fields.\n\n${OUTPUT_FORMAT}`,
   });
 
-  const response = await client.messages.parse({
+  const response = await client.messages.create({
     model: MODEL,
     max_tokens: 4096,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content }],
-    output_config: {
-      format: { type: "json_schema", schema: extractionSchema },
-    },
   });
 
-  const parsed = response.parsed_output as ExtractedData | null;
-  // Fall back to a blank shape if the model refused or returned nothing usable.
-  return parsed ? normalizeEmptyValues(parsed) : emptyExtractedData();
+  const text = response.content
+    .filter((block) => block.type === "text")
+    .map((block) => block.text)
+    .join("\n");
+  const parsed = parseJsonObject(text);
+  return parsed ? normalizeExtractedData(parsed) : emptyExtractedData();
 }
