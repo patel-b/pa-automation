@@ -32,11 +32,14 @@ export class MissingApiKeyError extends Error {
 
 // --- JSON schema for structured output (mirrors ExtractedData) ---
 
-const field = (valueType: "string" = "string") => ({
+const field = () => ({
   type: "object",
   additionalProperties: false,
   properties: {
-    value: { type: [valueType, "null"] },
+    value: {
+      type: "string",
+      description: "The literal extracted value, or an empty string if it is not present.",
+    },
     confidence: { type: "string", enum: ["high", "medium", "low"] },
     source: {
       type: "string",
@@ -109,10 +112,39 @@ const extractionSchema = objectOf({
   }),
 });
 
+function normalizeEmptyValues<T>(data: T): T {
+  if (Array.isArray(data)) {
+    return data.map(normalizeEmptyValues) as T;
+  }
+
+  if (data && typeof data === "object") {
+    const record = data as Record<string, unknown>;
+    const isExtractedField =
+      "value" in record && "confidence" in record && "source" in record;
+
+    if (
+      isExtractedField &&
+      typeof record.value === "string" &&
+      record.value.trim() === ""
+    ) {
+      return { ...record, value: null } as T;
+    }
+
+    return Object.fromEntries(
+      Object.entries(record).map(([key, value]) => [
+        key,
+        normalizeEmptyValues(value),
+      ]),
+    ) as T;
+  }
+
+  return data;
+}
+
 const SYSTEM_PROMPT = `You are a clinical intake assistant that extracts structured data from a patient's medical notes and their insurance card, to pre-fill a prior authorization (PA) request form.
 
 Extract every field you can find. For each field:
-- Put the literal value found (e.g. a member ID exactly as printed), or null if it isn't present.
+- Put the literal value found (e.g. a member ID exactly as printed), or an empty string if it isn't present.
 - Set "confidence" to how sure you are: "high" for clearly stated values, "medium" for inferred/partial, "low" for guesses.
 - Set "source" to a short note on where it came from: "insurance card", "clinical note", "inferred", or "not found".
 
@@ -129,7 +161,7 @@ For clinical.requestedService, put the medication name (for medication requests)
 For clinical.directions, put the Sig / directions for use exactly as written (e.g. "Inject 0.25 mg subcutaneously once weekly", "Take 1 capsule by mouth every morning").
 For provider.specialty, put the prescriber's medical specialty (e.g. "Endocrinology", "Dermatology", "Psychiatry") if stated or clearly implied by the clinic.
 For the medication detail fields, extract each from the prescription if present: clinical.strength (e.g. "300 mg/2 mL"), clinical.frequency (dosing frequency, e.g. "1 injection every 2 weeks"), clinical.quantity (amount dispensed, e.g. "1 carton (2 pens)"), clinical.daysSupply (e.g. "28 days"), and clinical.lengthOfTherapy (expected duration, e.g. "12 months"; use "chronic" only if the note says the condition is chronic/long-term).
-Do not invent data. If something isn't present, use null with source "not found". This is synthetic demo data; there are no privacy concerns.`;
+Do not invent data. If something isn't present, use an empty string with source "not found". This is synthetic demo data; there are no privacy concerns.`;
 
 export async function extractData(
   documentText: string,
@@ -179,5 +211,5 @@ export async function extractData(
 
   const parsed = response.parsed_output as ExtractedData | null;
   // Fall back to a blank shape if the model refused or returned nothing usable.
-  return parsed ?? emptyExtractedData();
+  return parsed ? normalizeEmptyValues(parsed) : emptyExtractedData();
 }
