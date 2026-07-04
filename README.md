@@ -41,8 +41,8 @@ npm run dev
 
 Then open <http://localhost:3000>.
 
-> By default the app uses **Claude Opus 4.8** for extraction. To use a different
-> model, set `ANTHROPIC_MODEL` in `.env.local` (e.g. `claude-sonnet-4-6`).
+> By default the app uses **Claude Sonnet 5** for extraction. To use a different
+> model, set `ANTHROPIC_MODEL` in `.env.local` (e.g. `claude-haiku-4-5`).
 
 ## Try it — no API key needed (Demo Mode)
 
